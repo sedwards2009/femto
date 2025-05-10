@@ -100,6 +100,16 @@ func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p tview.Primiti
 	})
 }
 
+func (v *View) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+	return v.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+		if action == tview.MouseLeftDown {
+			v.MousePress(event)
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
 // GetKeyBindings gets the keybindings for this view.
 func (v *View) GetKeybindings() KeyBindings {
 	return v.bindings
@@ -361,22 +371,23 @@ func (v *View) mainCursor() bool {
 	return v.Buf.curCursor == len(v.Buf.cursors)-1
 }
 
+func (v *View) getLineNumWidth() int {
+	if v.Buf.Settings["ruler"].(bool) {
+		// We need to know the string length of the largest line number
+		// so we can pad appropriately when displaying line numbers
+		return len(strconv.Itoa(v.Buf.NumLines)) + 1
+	}
+	return 0
+}
+
 // displayView draws the view to the screen
 func (v *View) displayView(screen tcell.Screen) {
 	if v.Buf.Settings["softwrap"].(bool) && v.leftCol != 0 {
 		v.leftCol = 0
 	}
 
-	// We need to know the string length of the largest line number
-	// so we can pad appropriately when displaying line numbers
 	maxLineNumLength := len(strconv.Itoa(v.Buf.NumLines))
-
-	if v.Buf.Settings["ruler"] == true {
-		// + 1 for the little space after the line number
-		v.lineNumOffset = maxLineNumLength + 1
-	} else {
-		v.lineNumOffset = 0
-	}
+	v.lineNumOffset = v.getLineNumWidth()
 
 	xOffset := v.x + v.lineNumOffset
 	yOffset := v.y

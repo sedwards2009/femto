@@ -254,23 +254,27 @@ func (c *Cursor) RuneUnder(x int) rune {
 	return line[x]
 }
 
-// UpN moves the cursor up N lines (if possible)
-func (c *Cursor) UpN(amount int) {
-	proposedY := c.Y - amount
-	if proposedY < 0 {
-		proposedY = 0
+func (c *Cursor) MoveTo(x int, y int) {
+	if y < 0 {
+		y = 0
 		c.LastVisualX = 0
-	} else if proposedY >= c.buf.NumLines {
-		proposedY = c.buf.NumLines - 1
+	} else if y >= c.buf.NumLines {
+		y = c.buf.NumLines - 1
 	}
 
-	runes := []rune(c.buf.Line(proposedY))
-	c.X = c.GetCharPosInLine(proposedY, c.LastVisualX)
-	if c.X > len(runes) || (amount < 0 && proposedY == c.Y) {
+	runes := []rune(c.buf.Line(y))
+	c.X = c.GetCharPosInLine(y, x)
+	if c.X > len(runes) {
 		c.X = len(runes)
 	}
 
-	c.Y = proposedY
+	c.Y = y
+}
+
+// UpN moves the cursor up N lines (if possible)
+func (c *Cursor) UpN(amount int) {
+	proposedY := c.Y - amount
+	c.MoveTo(c.X, proposedY)
 }
 
 // DownN moves the cursor down N lines (if possible)

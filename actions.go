@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/atotto/clipboard"
+	"github.com/gdamore/tcell/v2"
 )
 
 func (v *View) deselect(index int) bool {
@@ -33,6 +34,20 @@ func (v *View) ScrollDownAction() bool {
 		scrollspeed := int(v.Buf.Settings["scrollspeed"].(float64))
 		v.ScrollDown(scrollspeed)
 	}
+	return false
+}
+
+func (v *View) MousePress(e *tcell.EventMouse) bool {
+	absoluteMouseX, absoluteMouseY := e.Position()
+	rx, ry, _, _ := v.GetRect()
+	mouseX := absoluteMouseX - rx
+	mouseY := absoluteMouseY - ry + v.Topline
+	docX := mouseX - v.getLineNumWidth()
+	docY := mouseY
+
+	v.deselect(0)
+	v.Cursor.MoveTo(docX, docY)
+
 	return false
 }
 
