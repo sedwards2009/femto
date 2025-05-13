@@ -64,6 +64,10 @@ type View struct {
 
 	// The runtime files
 	runtimeFiles *RuntimeFiles
+
+	leftMouseDown bool
+
+	lastMouseLeftUpTime time.Time
 }
 
 // NewView returns a new view with the specified buffer.
@@ -102,10 +106,20 @@ func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p tview.Primiti
 
 func (v *View) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
 	return v.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
-		if action == tview.MouseLeftDown {
-			v.MousePress(event)
+		switch action {
+		case tview.MouseLeftDown:
+			v.MouseLeftDown(event)
+			return true, nil
+
+		case tview.MouseLeftUp:
+			v.MouseLeftUp(event)
+			return true, nil
+
+		case tview.MouseMove:
+			v.MouseMove(event)
 			return true, nil
 		}
+
 		return false, nil
 	})
 }

@@ -1,6 +1,7 @@
 package femto
 
 import (
+	"log"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -8,6 +9,8 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
 )
+
+const DOUBLE_CLICK_INTERVAL = 500 * time.Millisecond
 
 func (v *View) deselect(index int) bool {
 	if v.Cursor.HasSelection() {
@@ -37,7 +40,7 @@ func (v *View) ScrollDownAction() bool {
 	return false
 }
 
-func (v *View) MousePress(e *tcell.EventMouse) bool {
+func (v *View) docLocFromMouse(e *tcell.EventMouse) Loc {
 	absoluteMouseX, absoluteMouseY := e.Position()
 	rx, ry, _, _ := v.GetRect()
 	mouseX := absoluteMouseX - rx
@@ -45,11 +48,56 @@ func (v *View) MousePress(e *tcell.EventMouse) bool {
 	docX := mouseX - v.getLineNumWidth()
 	docY := mouseY
 
-	v.deselect(0)
-	v.Cursor.MoveTo(docX, docY)
-
-	return false
+	return Loc{X: docX, Y: docY}
 }
+
+func (v *View) MouseLeftDown(e *tcell.EventMouse) {
+	docLoc := v.docLocFromMouse(e)
+
+	log.Printf("MouseLeftDown: %v", time.Now())
+
+	// Compute the difference between the last click and the current click
+	// to determine if it's a double click
+	diff := time.Since(v.lastMouseLeftUpTime)
+	log.Printf("MouseLeftDown diff: %v", diff)
+	isDoubleClick := diff < DOUBLE_CLICK_INTERVAL
+	if isDoubleClick {
+		v.Cursor.SelectWord()
+		// v.Cursor.CopySelection("clipboard")
+		return
+	}
+
+	// Single click
+	v.deselect(0)
+	v.Cursor.MoveTo(docLoc)
+	v.Cursor.SetSelectionStart(docLoc)
+	v.Cursor.SetSelectionEnd(docLoc)
+	v.leftMouseDown = true
+}
+
+func (v *View) MouseLeftUp(e *tcell.EventMouse) {
+	v.leftMouseDown = false
+
+	log.Printf("MouseLeftUp: %v", time.Now())
+
+	// Record a timestamp for the last click
+	v.lastMouseLeftUpTime = time.Now()
+}
+
+func (v *View) MouseMove(e *tcell.EventMouse) {
+	if !v.leftMouseDown {
+		return
+	}
+
+	loc := v.docLocFromMouse(e)
+	v.Cursor.SetSelectionEnd(loc)
+	v.Cursor.MoveTo(loc)
+}
+
+// func (v *View) MouseLeftDoubleClick(e *tcell.EventMouse) {
+// 	v.Cursor.SelectWord()
+// 	// h.Cursor.CopySelection("primary")
+// }
 
 // Center centers the view on the cursor
 func (v *View) Center() bool {

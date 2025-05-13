@@ -254,7 +254,9 @@ func (c *Cursor) RuneUnder(x int) rune {
 	return line[x]
 }
 
-func (c *Cursor) MoveTo(x int, y int) {
+func (c *Cursor) MoveTo(loc Loc) {
+	x := loc.X
+	y := loc.Y
 	if y < 0 {
 		y = 0
 		c.LastVisualX = 0
@@ -274,7 +276,7 @@ func (c *Cursor) MoveTo(x int, y int) {
 // UpN moves the cursor up N lines (if possible)
 func (c *Cursor) UpN(amount int) {
 	proposedY := c.Y - amount
-	c.MoveTo(c.X, proposedY)
+	c.MoveTo(Loc{X: c.X, Y: proposedY})
 }
 
 // DownN moves the cursor down N lines (if possible)
