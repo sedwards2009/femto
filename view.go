@@ -9,6 +9,12 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	MOUSE_BUTTON_MODE_SINGLE = iota
+	MOUSE_BUTTON_MODE_DOUBLE
+	MOUSE_BUTTON_MODE_TRIPLE
+)
+
 // The View struct stores information about a view into a buffer.
 // It stores information about the cursor, and the viewport
 // that the user sees the buffer from.
@@ -65,8 +71,8 @@ type View struct {
 	// The runtime files
 	runtimeFiles *RuntimeFiles
 
-	leftMouseDown bool
-
+	leftMouseMode       int
+	leftMouseDown       bool
 	lastMouseLeftUpTime time.Time
 }
 

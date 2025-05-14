@@ -1,7 +1,6 @@
 package femto
 
 import (
-	"log"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -54,34 +53,40 @@ func (v *View) docLocFromMouse(e *tcell.EventMouse) Loc {
 func (v *View) MouseLeftDown(e *tcell.EventMouse) {
 	docLoc := v.docLocFromMouse(e)
 
-	log.Printf("MouseLeftDown: %v", time.Now())
+	fastClick := time.Since(v.lastMouseLeftUpTime) < DOUBLE_CLICK_INTERVAL
+	if fastClick {
+		switch v.leftMouseMode {
+		case MOUSE_BUTTON_MODE_SINGLE:
+			v.leftMouseMode = MOUSE_BUTTON_MODE_DOUBLE
 
-	// Compute the difference between the last click and the current click
-	// to determine if it's a double click
-	diff := time.Since(v.lastMouseLeftUpTime)
-	log.Printf("MouseLeftDown diff: %v", diff)
-	isDoubleClick := diff < DOUBLE_CLICK_INTERVAL
-	if isDoubleClick {
-		v.Cursor.SelectWord()
-		// v.Cursor.CopySelection("clipboard")
-		return
+		case MOUSE_BUTTON_MODE_DOUBLE:
+			v.leftMouseMode = MOUSE_BUTTON_MODE_TRIPLE
+
+		case MOUSE_BUTTON_MODE_TRIPLE:
+		}
+	} else {
+		v.leftMouseMode = MOUSE_BUTTON_MODE_SINGLE
 	}
 
-	// Single click
-	v.deselect(0)
-	v.Cursor.MoveTo(docLoc)
-	v.Cursor.SetSelectionStart(docLoc)
-	v.Cursor.SetSelectionEnd(docLoc)
+	switch v.leftMouseMode {
+	case MOUSE_BUTTON_MODE_SINGLE:
+		v.deselect(0)
+		v.Cursor.MoveTo(docLoc)
+		v.Cursor.SetSelectionStart(docLoc)
+		v.Cursor.SetSelectionEnd(docLoc)
+
+	case MOUSE_BUTTON_MODE_DOUBLE:
+		v.Cursor.SelectWord()
+
+	case MOUSE_BUTTON_MODE_TRIPLE:
+		v.Cursor.SelectLine()
+	}
 	v.leftMouseDown = true
 }
 
 func (v *View) MouseLeftUp(e *tcell.EventMouse) {
-	v.leftMouseDown = false
-
-	log.Printf("MouseLeftUp: %v", time.Now())
-
-	// Record a timestamp for the last click
 	v.lastMouseLeftUpTime = time.Now()
+	v.leftMouseDown = false
 }
 
 func (v *View) MouseMove(e *tcell.EventMouse) {
@@ -90,14 +95,21 @@ func (v *View) MouseMove(e *tcell.EventMouse) {
 	}
 
 	loc := v.docLocFromMouse(e)
-	v.Cursor.SetSelectionEnd(loc)
-	v.Cursor.MoveTo(loc)
-}
 
-// func (v *View) MouseLeftDoubleClick(e *tcell.EventMouse) {
-// 	v.Cursor.SelectWord()
-// 	// h.Cursor.CopySelection("primary")
-// }
+	switch v.leftMouseMode {
+	case MOUSE_BUTTON_MODE_SINGLE:
+		v.Cursor.SetSelectionEnd(loc)
+		v.Cursor.MoveTo(loc)
+
+	case MOUSE_BUTTON_MODE_DOUBLE:
+		v.Cursor.MoveTo(loc)
+		v.Cursor.AddWordToSelection()
+
+	case MOUSE_BUTTON_MODE_TRIPLE:
+		v.Cursor.MoveTo(loc)
+		v.Cursor.AddLineToSelection()
+	}
+}
 
 // Center centers the view on the cursor
 func (v *View) Center() bool {

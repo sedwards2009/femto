@@ -3,7 +3,6 @@ package femto
 import (
 	"crypto/md5"
 	"io"
-	"log"
 	"strings"
 	"unicode/utf8"
 
