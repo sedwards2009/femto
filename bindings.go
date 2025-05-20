@@ -79,15 +79,15 @@ const (
 	ActionUnbindKey              = "UnbindKey"
 )
 
-// keyDesc holds the data for a keypress (keycode + modifiers)
-type keyDesc struct {
-	keyCode   tcell.Key
-	modifiers tcell.ModMask
-	r         rune
+// KeyDesc holds the data for a keypress (keycode + modifiers)
+type KeyDesc struct {
+	KeyCode   tcell.Key
+	Modifiers tcell.ModMask
+	R         rune
 }
 
 // KeyBindings associates key presses with view actions.
-type KeyBindings map[keyDesc][]func(*View) bool
+type KeyBindings map[KeyDesc][]func(*View) bool
 
 // NewKeyBindings returns a new set of keybindings from the given set of binding descriptions.
 func NewKeyBindings(bindings map[string]string) KeyBindings {
@@ -97,7 +97,7 @@ func NewKeyBindings(bindings map[string]string) KeyBindings {
 // BindKey binds a key to a list of actions. If the key is not found or if any action is not found, this function has
 // no effect.
 func (bindings KeyBindings) BindKey(key string, actions string) KeyBindings {
-	k, ok := findKey(key)
+	k, ok := NewKeyDesc(key)
 	if !ok {
 		return bindings
 	}
@@ -403,8 +403,8 @@ func init() {
 	})
 }
 
-// findKey will find binding Key 'b' using string 'k'
-func findKey(k string) (b keyDesc, ok bool) {
+// NewKeyDesc will find binding Key 'b' using string 'k'
+func NewKeyDesc(k string) (b KeyDesc, ok bool) {
 	modifiers := tcell.ModNone
 
 	// First, we'll strip off all the modifiers in the name and add them to the
@@ -431,7 +431,7 @@ modSearch:
 	}
 
 	if len(k) == 0 {
-		return keyDesc{}, false
+		return KeyDesc{}, false
 	}
 
 	// Control is handled specially, since some character codes in bindingKeys
@@ -442,34 +442,34 @@ modSearch:
 		k = string(unicode.ToUpper(rune(k[0]))) + k[1:]
 		if code, ok := bindingKeys["Ctrl"+k]; ok {
 			// It is, we're done.
-			return keyDesc{
-				keyCode:   code,
-				modifiers: modifiers,
-				r:         0,
+			return KeyDesc{
+				KeyCode:   code,
+				Modifiers: modifiers,
+				R:         0,
 			}, true
 		}
 	}
 
 	// See if we can find the key in bindingKeys
 	if code, ok := bindingKeys[k]; ok {
-		return keyDesc{
-			keyCode:   code,
-			modifiers: modifiers,
-			r:         0,
+		return KeyDesc{
+			KeyCode:   code,
+			Modifiers: modifiers,
+			R:         0,
 		}, true
 	}
 
 	// If we were given one character, then we've got a rune.
 	if len(k) == 1 {
-		return keyDesc{
-			keyCode:   tcell.KeyRune,
-			modifiers: modifiers,
-			r:         rune(k[0]),
+		return KeyDesc{
+			KeyCode:   tcell.KeyRune,
+			Modifiers: modifiers,
+			R:         rune(k[0]),
 		}, true
 	}
 
 	// We don't know what happened.
-	return keyDesc{}, false
+	return KeyDesc{}, false
 }
 
 // findAction will find 'action' using string 'v'

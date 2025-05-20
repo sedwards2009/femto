@@ -328,13 +328,13 @@ func (v *View) HandleEvent(event tcell.Event) {
 		isBinding := false
 		for key, actions := range v.bindings {
 
-			if e.Key() == key.keyCode {
+			if e.Key() == key.KeyCode {
 				if e.Key() == tcell.KeyRune {
-					if e.Rune() != key.r {
+					if e.Rune() != key.R {
 						continue
 					}
 				}
-				if e.Modifiers() == key.modifiers {
+				if e.Modifiers() == key.Modifiers {
 					for _, c := range v.Buf.cursors {
 						ok := v.SetCursor(c)
 						if !ok {
