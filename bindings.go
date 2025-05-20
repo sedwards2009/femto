@@ -134,7 +134,7 @@ func (bindings KeyBindings) BindKeys(keys map[string]string) KeyBindings {
 	return bindings
 }
 
-var bindingActions = map[string]func(*View) bool{
+var BindingActionsMapping = map[string]func(*View) bool{
 	ActionCursorUp:               (*View).CursorUp,
 	ActionCursorDown:             (*View).CursorDown,
 	ActionCursorPageUp:           (*View).CursorPageUp,
@@ -204,7 +204,7 @@ var bindingActions = map[string]func(*View) bool{
 	ActionInsertEnter:            (*View).InsertNewline,
 }
 
-var bindingKeys = map[string]tcell.Key{
+var BindingKeysToTcellMapping = map[string]tcell.Key{
 	"Up":             tcell.KeyUp,
 	"Down":           tcell.KeyDown,
 	"Right":          tcell.KeyRight,
@@ -440,7 +440,7 @@ modSearch:
 	if modifiers&tcell.ModCtrl != 0 {
 		// see if the key is in bindingKeys with the Ctrl prefix.
 		k = string(unicode.ToUpper(rune(k[0]))) + k[1:]
-		if code, ok := bindingKeys["Ctrl"+k]; ok {
+		if code, ok := BindingKeysToTcellMapping["Ctrl"+k]; ok {
 			// It is, we're done.
 			return KeyDesc{
 				KeyCode:   code,
@@ -451,7 +451,7 @@ modSearch:
 	}
 
 	// See if we can find the key in bindingKeys
-	if code, ok := bindingKeys[k]; ok {
+	if code, ok := BindingKeysToTcellMapping[k]; ok {
 		return KeyDesc{
 			KeyCode:   code,
 			Modifiers: modifiers,
@@ -474,6 +474,6 @@ modSearch:
 
 // findAction will find 'action' using string 'v'
 func findAction(v string) (action func(*View) bool) {
-	action, _ = bindingActions[v]
+	action, _ = BindingActionsMapping[v]
 	return action
 }
