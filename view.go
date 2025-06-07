@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
+	"github.com/sedwards2009/nuview"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 // It stores information about the cursor, and the viewport
 // that the user sees the buffer from.
 type View struct {
-	*tview.Box
+	*nuview.Box
 
 	// A pointer to the buffer's cursor for ease of access
 	Cursor *Cursor
@@ -80,7 +80,7 @@ type View struct {
 func NewView(buf *Buffer) *View {
 	v := new(View)
 
-	v.Box = tview.NewBox()
+	v.Box = nuview.NewBox()
 
 	v.x, v.y, v.width, v.height = 0, 0, 0, 0
 
@@ -104,24 +104,24 @@ func (v *View) SetRect(x, y, width, height int) {
 }
 
 // InputHandler returns a handler which received key events when this view has focus,
-func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p tview.Primitive)) {
-	return v.WrapInputHandler(func(event *tcell.EventKey, _ func(p tview.Primitive)) {
+func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p nuview.Primitive)) {
+	return v.WrapInputHandler(func(event *tcell.EventKey, _ func(p nuview.Primitive)) {
 		v.HandleEvent(event)
 	})
 }
 
-func (v *View) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
-	return v.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+func (v *View) MouseHandler() func(action nuview.MouseAction, event *tcell.EventMouse, setFocus func(p nuview.Primitive)) (consumed bool, capture nuview.Primitive) {
+	return v.WrapMouseHandler(func(action nuview.MouseAction, event *tcell.EventMouse, setFocus func(p nuview.Primitive)) (consumed bool, capture nuview.Primitive) {
 		switch action {
-		case tview.MouseLeftDown:
+		case nuview.MouseLeftDown:
 			v.MouseLeftDown(event)
 			return true, nil
 
-		case tview.MouseLeftUp:
+		case nuview.MouseLeftUp:
 			v.MouseLeftUp(event)
 			return true, nil
 
-		case tview.MouseMove:
+		case nuview.MouseMove:
 			v.MouseMove(event)
 			return true, nil
 		}
