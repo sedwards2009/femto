@@ -273,7 +273,8 @@ func (v *View) Relocate() bool {
 			v.leftCol = cx
 			ret = true
 		}
-		if cx+v.lineNumOffset+1 > v.leftCol+v.width && v.width > cx+v.lineNumOffset+1 {
+		cursorXOnScreen := cx + v.lineNumOffset
+		if cursorXOnScreen > v.leftCol+v.width {
 			v.leftCol = cx - v.width + v.lineNumOffset + 1
 			ret = true
 		}
