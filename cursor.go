@@ -1,9 +1,5 @@
 package femto
 
-import (
-	"github.com/atotto/clipboard"
-)
-
 // The Cursor struct stores the location of the cursor in the view
 // The complicated part about the cursor is storing its location.
 // The cursor must be displayed at an x, y location, but since the buffer
@@ -46,7 +42,7 @@ func (c *Cursor) GotoLoc(l Loc) {
 // or "clipboard"
 func (c *Cursor) CopySelection(target string) {
 	if c.HasSelection() {
-		clipboard.WriteAll(c.GetSelection())
+		clipboardWriteAll(c.GetSelection())
 	}
 }
 

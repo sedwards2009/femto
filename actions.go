@@ -5,7 +5,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -704,10 +703,10 @@ func (v *View) CutLine() bool {
 	}
 	if v.freshClip == true {
 		if v.Cursor.HasSelection() {
-			if clip, err := clipboard.ReadAll(); err != nil {
+			if clip, err := clipboardReadAll(); err != nil {
 				// do nothing
 			} else {
-				clipboard.WriteAll(clip + v.Cursor.GetSelection())
+				clipboardWriteAll(clip + v.Cursor.GetSelection())
 			}
 		}
 	} else if time.Since(v.lastCutTime)/time.Second > 10*time.Second || v.freshClip == false {
@@ -822,7 +821,7 @@ func (v *View) MoveLinesDown() bool {
 // Paste whatever is in the system clipboard into the buffer
 // Delete and paste if the user has a selection
 func (v *View) Paste() bool {
-	clip, _ := clipboard.ReadAll()
+	clip, _ := clipboardReadAll()
 	v.paste(clip)
 	return true
 }
