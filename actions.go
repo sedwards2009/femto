@@ -1,6 +1,7 @@
 package femto
 
 import (
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -980,49 +981,6 @@ func (v *View) ToggleRuler() bool {
 	return false
 }
 
-//// JumpLine jumps to a line and moves the view accordingly.
-//func (v *View) JumpLine() bool {
-//
-//	// Prompt for line number
-//	message := fmt.Sprintf("Jump to line:col (1 - %v) # ", v.Buf.NumLines)
-//	input, canceled := messenger.Prompt(message, "", "LineNumber", NoCompletion)
-//	if canceled {
-//		return false
-//	}
-//	var lineInt int
-//	var colInt int
-//	var err error
-//	if strings.Contains(input, ":") {
-//		split := strings.Split(input, ":")
-//		lineInt, err = strconv.Atoi(split[0])
-//		if err != nil {
-//			messenger.Message("Invalid line number")
-//			return false
-//		}
-//		colInt, err = strconv.Atoi(split[1])
-//		if err != nil {
-//			messenger.Message("Invalid column number")
-//			return false
-//		}
-//	} else {
-//		lineInt, err = strconv.Atoi(input)
-//		if err != nil {
-//			messenger.Message("Invalid line number")
-//			return false
-//		}
-//	}
-//	lineInt--
-//	// Move cursor and view if possible.
-//	if lineInt < v.Buf.NumLines && lineInt >= 0 {
-//		v.Cursor.X = colInt
-//		v.Cursor.Y = lineInt
-//
-//		return true
-//	}
-//	messenger.Error("Only ", v.Buf.NumLines, " lines to jump")
-//	return false
-//}
-
 // ToggleOverwriteMode lets the user toggle the text overwrite mode
 func (v *View) ToggleOverwriteMode() bool {
 	if v.mainCursor() {
@@ -1055,11 +1013,10 @@ func (v *View) SpawnMultiCursor() bool {
 				buf: v.Buf,
 			}
 
-			//sel := spawner.GetSelection()
-
-			//searchStart = spawner.CurSelection[1]
+			sel := spawner.GetSelection()
+			v.searchStart = spawner.CurSelection[1]
 			v.Cursor = c
-			//Search(regexp.QuoteMeta(sel), v, true)
+			v.Search(regexp.QuoteMeta(sel), true)
 
 			for _, cur := range v.Buf.cursors {
 				if c.Loc == cur.Loc {

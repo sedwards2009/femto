@@ -74,6 +74,15 @@ type View struct {
 	leftMouseMode       int
 	leftMouseDown       bool
 	lastMouseLeftUpTime time.Time
+
+	// What was the last search
+	lastSearch string
+
+	// Where should we start the search down from (or up from)
+	searchStart Loc
+
+	// Is there currently a search in progress
+	searching bool
 }
 
 // NewView returns a new view with the specified buffer.
