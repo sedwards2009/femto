@@ -161,6 +161,11 @@ func (v *View) SetRuntimeFiles(runtimeFiles *RuntimeFiles) {
 	v.Buf.updateRules(v.runtimeFiles)
 }
 
+// True if the view is in overwrite mode, false if in insert mode.
+func (v *View) IsOverwriteMode() bool {
+	return v.isOverwriteMode
+}
+
 func (v *View) paste(clip string) {
 	if v.Buf.Settings["smartpaste"].(bool) {
 		if v.Cursor.X > 0 && GetLeadingWhitespace(strings.TrimLeft(clip, "\r\n")) == "" {
