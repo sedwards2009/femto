@@ -141,6 +141,15 @@ func (v *View) MouseHandler() func(action nuview.MouseAction, event *tcell.Event
 		case nuview.MouseMove:
 			v.MouseMove(event)
 			return true, nil
+
+		case nuview.MouseScrollUp:
+			v.ScrollUp(3)
+			return true, nil
+
+		case nuview.MouseScrollDown:
+			v.ScrollDown(3)
+			return true, nil
+
 		}
 
 		return false, nil
