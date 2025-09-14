@@ -121,6 +121,14 @@ func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p nuview.Primit
 
 func (v *View) MouseHandler() func(action nuview.MouseAction, event *tcell.EventMouse, setFocus func(p nuview.Primitive)) (consumed bool, capture nuview.Primitive) {
 	return v.WrapMouseHandler(func(action nuview.MouseAction, event *tcell.EventMouse, setFocus func(p nuview.Primitive)) (consumed bool, capture nuview.Primitive) {
+		rx, ry, width, height := v.GetInnerRect()
+		absEventX, absEventY := event.Position()
+		eventX := absEventX - rx
+		eventY := absEventY - ry
+		if eventX < 0 || eventX >= width || eventY < 0 || eventY >= height {
+			return false, nil
+		}
+
 		switch action {
 		case nuview.MouseLeftDown:
 			v.MouseLeftDown(event)
