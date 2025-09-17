@@ -104,16 +104,19 @@ func (v *View) Search(searchStr string, down bool) {
 		return
 	}
 
+	spawner := v.Buf.cursors[len(v.Buf.cursors)-1]
+	searchStart := spawner.CurSelection[1]
+
 	var found bool
 	if down {
-		found = v.searchDown(r, v.searchStart, v.Buf.End())
+		found = v.searchDown(r, searchStart, v.Buf.End())
 		if !found {
-			found = v.searchDown(r, v.Buf.Start(), v.searchStart)
+			found = v.searchDown(r, v.Buf.Start(), searchStart)
 		}
 	} else {
-		found = v.searchUp(r, v.searchStart, v.Buf.Start())
+		found = v.searchUp(r, searchStart, v.Buf.Start())
 		if !found {
-			found = v.searchUp(r, v.Buf.End(), v.searchStart)
+			found = v.searchUp(r, v.Buf.End(), searchStart)
 		}
 	}
 	if !found {
