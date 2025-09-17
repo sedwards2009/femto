@@ -132,6 +132,7 @@ func (v *View) MouseHandler() func(action nuview.MouseAction, event *tcell.Event
 		switch action {
 		case nuview.MouseLeftDown:
 			v.MouseLeftDown(event)
+			setFocus(v)
 			return true, nil
 
 		case nuview.MouseLeftUp:
