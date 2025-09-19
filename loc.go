@@ -127,6 +127,16 @@ func (l Loc) LessEqual(b Loc) bool {
 	return false
 }
 
+// Clamp clamps a loc between start and end
+func (l Loc) Clamp(start, end Loc) Loc {
+	if l.GreaterEqual(end) {
+		return end
+	} else if l.LessThan(start) {
+		return start
+	}
+	return l
+}
+
 // This moves the location one character to the right
 func (l Loc) right(buf *Buffer) Loc {
 	if l == buf.End() {

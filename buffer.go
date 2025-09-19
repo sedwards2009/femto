@@ -260,7 +260,7 @@ func (b *Buffer) insert(pos Loc, value []byte) {
 	b.LineArray.insert(pos, value)
 	b.update()
 }
-func (b *Buffer) remove(start, end Loc) string {
+func (b *Buffer) remove(start, end Loc) []byte {
 	b.IsModified = true
 	sub := b.LineArray.remove(start, end)
 	b.update()

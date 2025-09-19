@@ -193,7 +193,7 @@ func (la *LineArray) Split(pos Loc) {
 }
 
 // removes from start to end
-func (la *LineArray) remove(start, end Loc) string {
+func (la *LineArray) remove(start, end Loc) []byte {
 	sub := la.Substr(start, end)
 	startX := runeToByteIndex(start.X, la.lines[start.Y].data)
 	endX := runeToByteIndex(end.X, la.lines[end.Y].data)
@@ -231,18 +231,23 @@ func (la *LineArray) DeleteByte(pos Loc) {
 }
 
 // Substr returns the string representation between two locations
-func (la *LineArray) Substr(start, end Loc) string {
+func (la *LineArray) Substr(start, end Loc) []byte {
 	startX := runeToByteIndex(start.X, la.lines[start.Y].data)
 	endX := runeToByteIndex(end.X, la.lines[end.Y].data)
 	if start.Y == end.Y {
-		return string(la.lines[start.Y].data[startX:endX])
+		src := la.lines[start.Y].data[startX:endX]
+		dest := make([]byte, len(src))
+		copy(dest, src)
+		return dest
 	}
-	var str string
-	str += string(la.lines[start.Y].data[startX:]) + "\n"
+	str := make([]byte, 0, len(la.lines[start.Y+1].data)*(end.Y-start.Y))
+	str = append(str, la.lines[start.Y].data[startX:]...)
+	str = append(str, '\n')
 	for i := start.Y + 1; i <= end.Y-1; i++ {
-		str += string(la.lines[i].data) + "\n"
+		str = append(str, la.lines[i].data...)
+		str = append(str, '\n')
 	}
-	str += string(la.lines[end.Y].data[:endX])
+	str = append(str, la.lines[end.Y].data[:endX]...)
 	return str
 }
 

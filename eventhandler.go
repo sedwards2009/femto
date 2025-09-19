@@ -3,6 +3,7 @@ package femto
 import (
 	"time"
 
+	"github.com/pgavlin/femto/util"
 	dmp "github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -30,7 +31,7 @@ type TextEvent struct {
 
 // A Delta is a change to the buffer
 type Delta struct {
-	Text  string
+	Text  []byte
 	Start Loc
 	End   Loc
 }
@@ -48,9 +49,9 @@ func ExecuteTextEvent(t *TextEvent, buf *Buffer) {
 	} else if t.EventType == TextEventReplace {
 		for i, d := range t.Deltas {
 			t.Deltas[i].Text = buf.remove(d.Start, d.End)
-			buf.insert(d.Start, []byte(d.Text))
+			buf.insert(d.Start, d.Text)
 			t.Deltas[i].Start = d.Start
-			t.Deltas[i].End = Loc{d.Start.X + Count(d.Text), d.Start.Y}
+			t.Deltas[i].End = Loc{d.Start.X + util.CharacterCount(d.Text), d.Start.Y}
 		}
 		for i, j := 0, len(t.Deltas)-1; i < j; i, j = i+1, j-1 {
 			t.Deltas[i], t.Deltas[j] = t.Deltas[j], t.Deltas[i]
@@ -101,7 +102,8 @@ func (eh *EventHandler) ApplyDiff(new string) {
 }
 
 // Insert creates an insert text event and executes it
-func (eh *EventHandler) Insert(start Loc, text string) {
+func (eh *EventHandler) Insert(start Loc, textStr string) {
+	text := []byte(textStr)
 	e := &TextEvent{
 		C:         *eh.buf.cursors[eh.buf.curCursor],
 		EventType: TextEventInsert,
@@ -109,7 +111,7 @@ func (eh *EventHandler) Insert(start Loc, text string) {
 		Time:      time.Now(),
 	}
 	eh.Execute(e)
-	e.Deltas[0].End = start.Move(Count(text), eh.buf)
+	e.Deltas[0].End = start.Move(util.CharacterCount(text), eh.buf)
 	end := e.Deltas[0].End
 
 	for _, c := range eh.buf.cursors {
@@ -117,7 +119,7 @@ func (eh *EventHandler) Insert(start Loc, text string) {
 			if start.Y != end.Y && loc.GreaterThan(start) {
 				loc.Y += end.Y - start.Y
 			} else if loc.Y == start.Y && loc.GreaterEqual(start) {
-				loc = loc.Move(Count(text), eh.buf)
+				loc = loc.Move(util.CharacterCount(text), eh.buf)
 			}
 			return loc
 		}
@@ -135,7 +137,7 @@ func (eh *EventHandler) Remove(start, end Loc) {
 	e := &TextEvent{
 		C:         *eh.buf.cursors[eh.buf.curCursor],
 		EventType: TextEventRemove,
-		Deltas:    []Delta{{"", start, end}},
+		Deltas:    []Delta{{[]byte{}, start, end}},
 		Time:      time.Now(),
 	}
 	eh.Execute(e)
