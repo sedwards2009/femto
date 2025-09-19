@@ -61,7 +61,7 @@ func NewBufferFromString(text, path string) *Buffer {
 // NewBuffer creates a new buffer from a given reader
 func NewBuffer(reader io.Reader, size int64, path string, cursorPosition []string) *Buffer {
 	b := new(Buffer)
-	b.LineArray = NewLineArray(size, reader)
+	b.LineArray = NewLineArray(uint64(size), reader)
 
 	b.Settings = DefaultLocalSettings()
 	//	for k, v := range globalSettings {

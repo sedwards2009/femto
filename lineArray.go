@@ -2,6 +2,7 @@ package femto
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"unicode/utf8"
 
@@ -42,7 +43,8 @@ type Line struct {
 // A LineArray simply stores and array of lines and makes it easy to insert
 // and delete in it
 type LineArray struct {
-	lines []Line
+	lines    []Line
+	initsize uint64
 }
 
 // Append efficiently appends lines together
@@ -64,10 +66,11 @@ func Append(slice []Line, data ...Line) []Line {
 }
 
 // NewLineArray returns a new line array from an array of bytes
-func NewLineArray(size int64, reader io.Reader) *LineArray {
+func NewLineArray(size uint64, reader io.Reader) *LineArray {
 	la := new(LineArray)
 
 	la.lines = make([]Line, 0, 1000)
+	la.initsize = size
 
 	br := bufio.NewReader(reader)
 	var loaded int
@@ -142,6 +145,24 @@ func (la *LineArray) SaveString(useCrlf bool) string {
 		}
 	}
 	return str
+}
+
+// Bytes returns the string that should be written to disk when
+// the line array is saved
+func (la *LineArray) Bytes(useCrlf bool) []byte {
+	b := new(bytes.Buffer)
+	// initsize should provide a good estimate
+	b.Grow(int(la.initsize + 4096))
+	for i, l := range la.lines {
+		b.Write(l.data)
+		if i != len(la.lines)-1 {
+			if useCrlf {
+				b.WriteByte('\r')
+			}
+			b.WriteByte('\n')
+		}
+	}
+	return b.Bytes()
 }
 
 // NewlineBelow adds a newline below the given line number
