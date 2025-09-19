@@ -3,7 +3,7 @@ package femto
 import (
 	"time"
 
-	"github.com/pgavlin/femto/util"
+	"github.com/sedwards2009/femto/util"
 	dmp "github.com/sergi/go-diff/diffmatchpatch"
 )
 

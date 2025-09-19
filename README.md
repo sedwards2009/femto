@@ -5,6 +5,8 @@
 
 **Note** The shape of the `femto` API is a work-in-progress, and should not be considered stable.
 
+This is a fork of https://github.com/pgavlin/femto
+
 ### Default keybindings
 ```
 Up:             CursorUp
@@ -84,9 +86,9 @@ import (
 	"os"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/pgavlin/femto"
-	"github.com/pgavlin/femto/runtime"
-	"github.com/rivo/tview"
+	"github.com/sedwards2009/femto"
+	"github.com/sedwards2009/femto/runtime"
+	"github.com/sedwards2009/nuview"
 )
 
 func saveBuffer(b *femto.Buffer, path string) error {
@@ -112,7 +114,7 @@ func main() {
 		}
 	}
 
-	app := tview.NewApplication()
+	app := nuview.NewApplication()
 	buffer := femto.NewBufferFromString(string(content), path)
 	root := femto.NewView(buffer)
 	root.SetRuntimeFiles(runtime.Files)

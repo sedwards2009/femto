@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/pgavlin/femto"
-	"github.com/pgavlin/femto/runtime"
+	"github.com/sedwards2009/femto"
+	"github.com/sedwards2009/femto/runtime"
 	"github.com/sedwards2009/nuview"
 )
 

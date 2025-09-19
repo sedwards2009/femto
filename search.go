@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"unicode/utf8"
 
-	"github.com/pgavlin/femto/util"
+	"github.com/sedwards2009/femto/util"
 )
 
 // We want "^" and "$" to match only the beginning/end of a line, not the
