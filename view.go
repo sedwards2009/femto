@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/sedwards2009/nuview"
+	"github.com/rivo/tview"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 // It stores information about the cursor, and the viewport
 // that the user sees the buffer from.
 type View struct {
-	*nuview.Box
+	*tview.Box
 
 	// A pointer to the buffer's cursor for ease of access
 	Cursor *Cursor
@@ -89,7 +89,7 @@ type View struct {
 func NewView(buf *Buffer) *View {
 	v := new(View)
 
-	v.Box = nuview.NewBox()
+	v.Box = tview.NewBox()
 
 	v.x, v.y, v.width, v.height = 0, 0, 0, 0
 
@@ -113,14 +113,14 @@ func (v *View) SetRect(x, y, width, height int) {
 }
 
 // InputHandler returns a handler which received key events when this view has focus,
-func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p nuview.Primitive)) {
-	return v.WrapInputHandler(func(event *tcell.EventKey, _ func(p nuview.Primitive)) {
+func (v *View) InputHandler() func(event *tcell.EventKey, _ func(p tview.Primitive)) {
+	return v.WrapInputHandler(func(event *tcell.EventKey, _ func(p tview.Primitive)) {
 		v.HandleEvent(event)
 	})
 }
 
-func (v *View) MouseHandler() func(action nuview.MouseAction, event *tcell.EventMouse, setFocus func(p nuview.Primitive)) (consumed bool, capture nuview.Primitive) {
-	return v.WrapMouseHandler(func(action nuview.MouseAction, event *tcell.EventMouse, setFocus func(p nuview.Primitive)) (consumed bool, capture nuview.Primitive) {
+func (v *View) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+	return v.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
 		rx, ry, width, height := v.GetInnerRect()
 		absEventX, absEventY := event.Position()
 		eventX := absEventX - rx
@@ -130,24 +130,24 @@ func (v *View) MouseHandler() func(action nuview.MouseAction, event *tcell.Event
 		}
 
 		switch action {
-		case nuview.MouseLeftDown:
+		case tview.MouseLeftDown:
 			v.MouseLeftDown(event)
 			setFocus(v)
 			return true, nil
 
-		case nuview.MouseLeftUp:
+		case tview.MouseLeftUp:
 			v.MouseLeftUp(event)
 			return true, nil
 
-		case nuview.MouseMove:
+		case tview.MouseMove:
 			v.MouseMove(event)
 			return true, nil
 
-		case nuview.MouseScrollUp:
+		case tview.MouseScrollUp:
 			v.ScrollUp(3)
 			return true, nil
 
-		case nuview.MouseScrollDown:
+		case tview.MouseScrollDown:
 			v.ScrollDown(3)
 			return true, nil
 

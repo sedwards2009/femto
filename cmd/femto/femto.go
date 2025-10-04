@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 	"github.com/sedwards2009/femto"
 	"github.com/sedwards2009/femto/runtime"
-	"github.com/sedwards2009/nuview"
 )
 
 func saveBuffer(b *femto.Buffer, path string) error {
@@ -35,7 +35,7 @@ func main() {
 		}
 	}
 
-	app := nuview.NewApplication()
+	app := tview.NewApplication()
 	buffer := femto.NewBufferFromString(string(content), path)
 	root := femto.NewView(buffer)
 	root.SetRuntimeFiles(runtime.Files)
