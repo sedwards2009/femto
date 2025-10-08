@@ -520,13 +520,15 @@ func (v *View) displayView(screen tcell.Screen) {
 			screenX++
 		}
 
+		hasFocus := v.HasFocus()
+		showCursors := !v.Buf.Settings["hidecursoronblur"].(bool) || hasFocus
+
 		var lastChar *Char
 		cursorSet := false
 		for _, char := range line {
 			if char != nil {
 				lineStyle := char.style
 
-				colorcolumn := int(v.Buf.Settings["colorcolumn"].(float64))
 				if colorcolumn != 0 && char.visualLoc.X == colorcolumn {
 					style := v.colorscheme.GetColor("color-column")
 					fg, _, _ := style.Decompose()
@@ -534,45 +536,50 @@ func (v *View) displayView(screen tcell.Screen) {
 				}
 
 				charLoc := char.realLoc
-				for _, c := range v.Buf.cursors {
-					v.SetCursor(c)
-					if v.Cursor.HasSelection() &&
-						(charLoc.GreaterEqual(v.Cursor.CurSelection[0]) && charLoc.LessThan(v.Cursor.CurSelection[1]) ||
-							charLoc.LessThan(v.Cursor.CurSelection[0]) && charLoc.GreaterEqual(v.Cursor.CurSelection[1])) {
-						// The current character is selected
-						lineStyle = defStyle.Reverse(true)
 
-						if style, ok := v.colorscheme["selection"]; ok {
-							lineStyle = style
+				if showCursors {
+					for _, c := range v.Buf.cursors {
+						v.SetCursor(c)
+						if v.Cursor.HasSelection() &&
+							(charLoc.GreaterEqual(v.Cursor.CurSelection[0]) && charLoc.LessThan(v.Cursor.CurSelection[1]) ||
+								charLoc.LessThan(v.Cursor.CurSelection[0]) && charLoc.GreaterEqual(v.Cursor.CurSelection[1])) {
+							// The current character is selected
+							lineStyle = defStyle.Reverse(true)
+
+							if style, ok := v.colorscheme["selection"]; ok {
+								lineStyle = style
+							}
 						}
 					}
-				}
-				v.SetCursor(&v.Buf.Cursor)
+					v.SetCursor(&v.Buf.Cursor)
 
-				if v.Buf.Settings["cursorline"].(bool) &&
-					!v.Cursor.HasSelection() && v.Cursor.Y == realLineN {
-					style := v.colorscheme.GetColor("cursor-line")
-					fg, _, _ := style.Decompose()
-					lineStyle = lineStyle.Background(fg)
+					if v.Buf.Settings["cursorline"].(bool) &&
+						!v.Cursor.HasSelection() && v.Cursor.Y == realLineN {
+						style := v.colorscheme.GetColor("cursor-line")
+						fg, _, _ := style.Decompose()
+						lineStyle = lineStyle.Background(fg)
+					}
 				}
 
 				screen.SetContent(xOffset+char.visualLoc.X, yOffset+char.visualLoc.Y, char.drawChar, nil, lineStyle)
 
-				for i, c := range v.Buf.cursors {
-					v.SetCursor(c)
-					if !v.Cursor.HasSelection() &&
-						v.Cursor.Y == char.realLoc.Y && v.Cursor.X == char.realLoc.X && (!cursorSet || i != 0) {
-						v.showMultiCursor(screen, xOffset+char.visualLoc.X, yOffset+char.visualLoc.Y, i)
-						cursorSet = true
+				if showCursors {
+					for i, c := range v.Buf.cursors {
+						v.SetCursor(c)
+						if !v.Cursor.HasSelection() &&
+							v.Cursor.Y == char.realLoc.Y && v.Cursor.X == char.realLoc.X && (!cursorSet || i != 0) {
+							v.showMultiCursor(screen, xOffset+char.visualLoc.X, yOffset+char.visualLoc.Y, i)
+							cursorSet = true
+						}
 					}
+					v.SetCursor(&v.Buf.Cursor)
 				}
-				v.SetCursor(&v.Buf.Cursor)
 
 				lastChar = char
 			}
 		}
 
-		if !v.Buf.Settings["hidecursoronblur"].(bool) || v.HasFocus() {
+		if showCursors {
 			lastX := 0
 			var realLoc Loc
 			var visualLoc Loc
