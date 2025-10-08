@@ -572,58 +572,60 @@ func (v *View) displayView(screen tcell.Screen) {
 			}
 		}
 
-		lastX := 0
-		var realLoc Loc
-		var visualLoc Loc
-		var cx, cy int
-		if lastChar != nil {
-			lastX = xOffset + lastChar.visualLoc.X + lastChar.width
-			for i, c := range v.Buf.cursors {
-				v.SetCursor(c)
-				if !v.Cursor.HasSelection() &&
-					v.Cursor.Y == lastChar.realLoc.Y && v.Cursor.X == lastChar.realLoc.X+1 {
-					v.showMultiCursor(screen, lastX, yOffset+lastChar.visualLoc.Y, i)
-					cx, cy = lastX, yOffset+lastChar.visualLoc.Y
+		if !v.Buf.Settings["hidecursoronblur"].(bool) || v.HasFocus() {
+			lastX := 0
+			var realLoc Loc
+			var visualLoc Loc
+			var cx, cy int
+			if lastChar != nil {
+				lastX = xOffset + lastChar.visualLoc.X + lastChar.width
+				for i, c := range v.Buf.cursors {
+					v.SetCursor(c)
+					if !v.Cursor.HasSelection() &&
+						v.Cursor.Y == lastChar.realLoc.Y && v.Cursor.X == lastChar.realLoc.X+1 {
+						v.showMultiCursor(screen, lastX, yOffset+lastChar.visualLoc.Y, i)
+						cx, cy = lastX, yOffset+lastChar.visualLoc.Y
+					}
 				}
-			}
-			v.SetCursor(&v.Buf.Cursor)
-			realLoc = Loc{lastChar.realLoc.X + 1, realLineN}
-			visualLoc = Loc{lastX - xOffset, lastChar.visualLoc.Y}
-		} else if len(line) == 0 {
-			for i, c := range v.Buf.cursors {
-				v.SetCursor(c)
-				if !v.Cursor.HasSelection() &&
-					v.Cursor.Y == realLineN {
-					v.showMultiCursor(screen, xOffset, yOffset+visualLineN, i)
-					cx, cy = xOffset, yOffset+visualLineN
+				v.SetCursor(&v.Buf.Cursor)
+				realLoc = Loc{lastChar.realLoc.X + 1, realLineN}
+				visualLoc = Loc{lastX - xOffset, lastChar.visualLoc.Y}
+			} else if len(line) == 0 {
+				for i, c := range v.Buf.cursors {
+					v.SetCursor(c)
+					if !v.Cursor.HasSelection() &&
+						v.Cursor.Y == realLineN {
+						v.showMultiCursor(screen, xOffset, yOffset+visualLineN, i)
+						cx, cy = xOffset, yOffset+visualLineN
+					}
 				}
+				v.SetCursor(&v.Buf.Cursor)
+				lastX = xOffset
+				realLoc = Loc{0, realLineN}
+				visualLoc = Loc{0, visualLineN}
 			}
-			v.SetCursor(&v.Buf.Cursor)
-			lastX = xOffset
-			realLoc = Loc{0, realLineN}
-			visualLoc = Loc{0, visualLineN}
-		}
 
-		if v.Cursor.HasSelection() &&
-			(realLoc.GreaterEqual(v.Cursor.CurSelection[0]) && realLoc.LessThan(v.Cursor.CurSelection[1]) ||
-				realLoc.LessThan(v.Cursor.CurSelection[0]) && realLoc.GreaterEqual(v.Cursor.CurSelection[1])) {
-			// The current character is selected
-			selectStyle := defStyle.Reverse(true)
+			if v.Cursor.HasSelection() &&
+				(realLoc.GreaterEqual(v.Cursor.CurSelection[0]) && realLoc.LessThan(v.Cursor.CurSelection[1]) ||
+					realLoc.LessThan(v.Cursor.CurSelection[0]) && realLoc.GreaterEqual(v.Cursor.CurSelection[1])) {
+				// The current character is selected
+				selectStyle := defStyle.Reverse(true)
 
-			if style, ok := v.colorscheme["selection"]; ok {
-				selectStyle = style
+				if style, ok := v.colorscheme["selection"]; ok {
+					selectStyle = style
+				}
+				screen.SetContent(xOffset+visualLoc.X, yOffset+visualLoc.Y, ' ', nil, selectStyle)
 			}
-			screen.SetContent(xOffset+visualLoc.X, yOffset+visualLoc.Y, ' ', nil, selectStyle)
-		}
 
-		if v.Buf.Settings["cursorline"].(bool) &&
-			!v.Cursor.HasSelection() && v.Cursor.Y == realLineN {
-			for i := lastX; i < xOffset+v.width-v.lineNumOffset; i++ {
-				style := v.colorscheme.GetColor("cursor-line")
-				fg, _, _ := style.Decompose()
-				style = style.Background(fg)
-				if !(!v.Cursor.HasSelection() && i == cx && yOffset+visualLineN == cy) {
-					screen.SetContent(i, yOffset+visualLineN, ' ', nil, style)
+			if v.Buf.Settings["cursorline"].(bool) &&
+				!v.Cursor.HasSelection() && v.Cursor.Y == realLineN {
+				for i := lastX; i < xOffset+v.width-v.lineNumOffset; i++ {
+					style := v.colorscheme.GetColor("cursor-line")
+					fg, _, _ := style.Decompose()
+					style = style.Background(fg)
+					if !(!v.Cursor.HasSelection() && i == cx && yOffset+visualLineN == cy) {
+						screen.SetContent(i, yOffset+visualLineN, ' ', nil, style)
+					}
 				}
 			}
 		}
