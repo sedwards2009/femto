@@ -523,9 +523,12 @@ func (v *View) displayView(screen tcell.Screen) {
 		hasFocus := v.HasFocus()
 		showCursors := !v.Buf.Settings["hidecursoronblur"].(bool) || hasFocus
 
+		showWhitespace := v.Buf.Settings["showwhitespace"].(bool)
+		tabsize := int(v.Buf.Settings["tabsize"].(float64))
+
 		var lastChar *Char
 		cursorSet := false
-		for _, char := range line {
+		for i, char := range line {
 			if char != nil {
 				lineStyle := char.style
 
@@ -561,7 +564,20 @@ func (v *View) displayView(screen tcell.Screen) {
 					}
 				}
 
-				screen.SetContent(xOffset+char.visualLoc.X, yOffset+char.visualLoc.Y, char.drawChar, nil, lineStyle)
+				drawChar := char.drawChar
+				if showWhitespace {
+					charChar := char.char
+					if charChar == '\t' {
+						if i%tabsize == 0 {
+							drawChar = '\u2192'
+						}
+					} else {
+						if charChar == ' ' {
+							drawChar = '\u00B7'
+						}
+					}
+				}
+				screen.SetContent(xOffset+char.visualLoc.X, yOffset+char.visualLoc.Y, drawChar, nil, lineStyle)
 
 				if showCursors {
 					for i, c := range v.Buf.cursors {
