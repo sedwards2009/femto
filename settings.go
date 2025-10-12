@@ -15,7 +15,6 @@ func DefaultLocalSettings() map[string]interface{} {
 		"filetype":         "Unknown",
 		"hidecursoronblur": false,
 		"hidehelp":         false,
-		"ignorecase":       false,
 		"indentchar":       " ",
 		"keepautoindent":   false,
 		"matchbrace":       false,

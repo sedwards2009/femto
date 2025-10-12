@@ -1016,7 +1016,7 @@ func (v *View) SpawnMultiCursor() bool {
 			sel := spawner.GetSelection()
 			v.searchStart = spawner.CurSelection[1]
 			v.Cursor = c
-			v.Search(regexp.QuoteMeta(sel), false, true)
+			v.Search(regexp.QuoteMeta(sel), false, false, true)
 
 			for _, cur := range v.Buf.cursors {
 				if c.Loc == cur.Loc {

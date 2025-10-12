@@ -142,7 +142,7 @@ func (b *Buffer) findAll(r *regexp.Regexp, start, end Loc) [][2]Loc {
 // It returns the start and end location of the match (if found) and
 // a boolean indicating if it was found
 // May also return an error if the search regex is invalid
-func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bool) ([2]Loc, bool, error) {
+func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bool, caseSensitive bool) ([2]Loc, bool, error) {
 	if s == "" {
 		return [2]Loc{}, false, nil
 	}
@@ -154,10 +154,10 @@ func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bo
 		s = regexp.QuoteMeta(s)
 	}
 
-	if b.Settings["ignorecase"].(bool) {
-		r, err = regexp.Compile("(?i)" + s)
-	} else {
+	if caseSensitive {
 		r, err = regexp.Compile(s)
+	} else {
+		r, err = regexp.Compile("(?i)" + s)
 	}
 
 	if err != nil {
@@ -243,13 +243,13 @@ func (b *Buffer) ReplaceRegex(start, end Loc, search *regexp.Regexp, replace []b
 // it affects the buffer's LastSearch and LastSearchRegex (saved searches)
 // for use with FindNext and FindPrevious, and turns HighlightSearch on or off
 // according to hlsearch setting
-func (v *View) Search(str string, useRegex bool, searchDown bool) error {
+func (v *View) Search(str string, useRegex bool, caseSensitive bool, searchDown bool) error {
 	loc := v.Cursor.Loc
 	if v.Cursor.HasSelection() && !searchDown {
 		loc = v.Cursor.CurSelection[0]
 	}
 
-	match, found, err := v.Buf.FindNext(str, v.Buf.Start(), v.Buf.End(), loc, searchDown, useRegex)
+	match, found, err := v.Buf.FindNext(str, v.Buf.Start(), v.Buf.End(), loc, searchDown, useRegex, caseSensitive)
 	if err != nil {
 		return err
 	}
