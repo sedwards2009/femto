@@ -138,15 +138,7 @@ func (b *Buffer) findAll(r *regexp.Regexp, start, end Loc) [][2]Loc {
 	return matches
 }
 
-// FindNext finds the next occurrence of a given string in the buffer
-// It returns the start and end location of the match (if found) and
-// a boolean indicating if it was found
-// May also return an error if the search regex is invalid
-func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bool, caseSensitive bool) ([2]Loc, bool, error) {
-	if s == "" {
-		return [2]Loc{}, false, nil
-	}
-
+func createRegex(s string, useRegex bool, caseSensitive bool) (*regexp.Regexp, error) {
 	var r *regexp.Regexp
 	var err error
 
@@ -159,7 +151,19 @@ func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bo
 	} else {
 		r, err = regexp.Compile("(?i)" + s)
 	}
+	return r, err
+}
 
+// FindNext finds the next occurrence of a given string in the buffer
+// It returns the start and end location of the match (if found) and
+// a boolean indicating if it was found
+// May also return an error if the search regex is invalid
+func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bool, caseSensitive bool) ([2]Loc, bool, error) {
+	if s == "" {
+		return [2]Loc{}, false, nil
+	}
+
+	r, err := createRegex(s, useRegex, caseSensitive)
 	if err != nil {
 		return [2]Loc{}, false, err
 	}
@@ -229,6 +233,23 @@ func (b *Buffer) ReplaceRegex(start, end Loc, search *regexp.Regexp, replace []b
 	b.MultipleReplace(deltas)
 
 	return found, util.CharacterCount(b.LineBytes(end.Y)) - charsEnd
+}
+
+// Replace all occurrences of str with replaceText in the entire buffer
+//
+// Returns the number of replacements made and an error if the regex is invalid
+func (v *View) ReplaceAll(str string, useRegex bool, caseSensitive bool, replaceText string) (int, error) {
+	if str == "" {
+		return 0, nil
+	}
+
+	regex, err := createRegex(str, useRegex, caseSensitive)
+	if err != nil {
+		return 0, err
+	}
+
+	count, _ := v.Buf.ReplaceRegex(v.Buf.Start(), v.Buf.End(), regex, []byte(replaceText), false)
+	return count, nil
 }
 
 // Search for a string/regex and select it
