@@ -165,19 +165,13 @@ func (b *Buffer) FindNext(s string, start, end, from Loc, down bool, useRegex bo
 	}
 
 	var found bool
-	var l [2]Loc
+	var locationPair [2]Loc
 	if down {
-		l, found = b.findDown(r, from, end)
-		if !found {
-			l, found = b.findDown(r, start, end)
-		}
+		locationPair, found = b.findDown(r, from, end)
 	} else {
-		l, found = b.findUp(r, from, start)
-		if !found {
-			l, found = b.findUp(r, end, start)
-		}
+		locationPair, found = b.findUp(r, from, start)
 	}
-	return l, found, nil
+	return locationPair, found, nil
 }
 
 // ReplaceRegex replaces all occurrences of 'search' with 'replace' in the given area
@@ -237,13 +231,10 @@ func (b *Buffer) ReplaceRegex(start, end Loc, search *regexp.Regexp, replace []b
 	return found, util.CharacterCount(b.LineBytes(end.Y)) - charsEnd
 }
 
-// Search searches for a given string/regex in the buffer and selects the next
-// match if a match is found
-// This function behaves the same way as Find and FindLiteral actions:
-// it affects the buffer's LastSearch and LastSearchRegex (saved searches)
-// for use with FindNext and FindPrevious, and turns HighlightSearch on or off
-// according to hlsearch setting
-func (v *View) Search(str string, useRegex bool, caseSensitive bool, searchDown bool) error {
+// Search for a string/regex and select it
+//
+// Returns true,nil if the string was found, false,nil if not found, and false,error on error.
+func (v *View) Search(str string, useRegex bool, caseSensitive bool, searchDown bool) (bool, error) {
 	loc := v.Cursor.Loc
 	if v.Cursor.HasSelection() && !searchDown {
 		loc = v.Cursor.CurSelection[0]
@@ -251,7 +242,7 @@ func (v *View) Search(str string, useRegex bool, caseSensitive bool, searchDown 
 
 	match, found, err := v.Buf.FindNext(str, v.Buf.Start(), v.Buf.End(), loc, searchDown, useRegex, caseSensitive)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if found {
@@ -260,8 +251,8 @@ func (v *View) Search(str string, useRegex bool, caseSensitive bool, searchDown 
 		v.Cursor.OrigSelection[0] = v.Cursor.CurSelection[0]
 		v.Cursor.OrigSelection[1] = v.Cursor.CurSelection[1]
 		v.Cursor.GotoLoc(v.Cursor.CurSelection[1])
+		return true, nil
 	} else {
-		v.Cursor.ResetSelection()
+		return false, nil
 	}
-	return nil
 }
